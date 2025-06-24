@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Chart Example</title>
+    <script src="myChart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        canvas {
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
+    <h1 class="text-3xl font-bold text-blue-700 mb-8">Database Chart Example</h1>
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+        <canvas id="dbChart" width="700" height="400" class="mb-2 h-auto rounded shadow"></canvas>
+    </div>
+    <div id="dbChartError" class="text-red-600 mt-4"></div>
+    <script>
+        fetch('db_test.php')
+            .then(res => res.json())
+            .then(chartConfig => {
+                if (!chartConfig || !chartConfig.labels || !chartConfig.datasets) {
+                    document.getElementById('dbChartError').textContent = 'Invalid chart data from db_test.php';
+                    return;
+                }
+                window.drawChart(
+                    'bar',
+                    chartConfig.labels,
+                    chartConfig.datasets,
+                    'dbChart',
+                    chartConfig.options || {}
+                );
+            })
+            .catch(err => {
+                document.getElementById('dbChartError').textContent = 'Error loading chart data: ' + err;
+            });
+    </script>
+</body>
+
+</html>

@@ -84,7 +84,22 @@ class ChartCore {
         ctx.font = '12px sans-serif';
         ctx.textAlign = 'right';
 
-        const yStep = 50;
+        // Calculate a 'nice' yStep for the axis
+        function niceStep(max, targetSteps = 7) {
+            if (!max || max < 1) return 1;
+            const rough = max / targetSteps;
+            const pow10 = Math.pow(10, Math.floor(Math.log10(rough)));
+            const nice = [1, 2, 5, 10];
+            let step = pow10;
+            for (let n of nice) {
+                if (rough <= n * pow10) {
+                    step = n * pow10;
+                    break;
+                }
+            }
+            return step;
+        }
+        const yStep = niceStep(maxLeft);
         for (let y = 0; y <= maxLeft; y += yStep) {
             const yPos = this.height - this.padding - (y / maxLeft) * this.graphHeight;
             ctx.beginPath();
@@ -96,7 +111,8 @@ class ChartCore {
 
         if (maxRight > 0) {
             ctx.textAlign = 'left';
-            for (let y = 0; y <= maxRight; y += yStep) {
+            const yStepR = niceStep(maxRight);
+            for (let y = 0; y <= maxRight; y += yStepR) {
                 const yPos = this.height - this.padding - (y / maxRight) * this.graphHeight;
                 ctx.fillText(y, this.width - this.padding + 10, yPos + 4);
             }
