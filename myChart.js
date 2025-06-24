@@ -77,6 +77,43 @@ class ChartCore {
         return { leftMax, rightMax };
     }
 
+    // Calculates min and max for left and right axes (supporting negative values)
+    getAxisMinMaxValues() {
+        let datasets = this.config.data.datasets;
+        const options = this.config.options || {};
+        let leftMin = 0, leftMax = 0, rightMin = 0, rightMax = 0;
+        if (options.stacked) {
+            const numPoints = datasets[0]?.data?.length || 0;
+            for (let i = 0; i < numPoints; i++) {
+                let sumLeft = 0, sumRight = 0;
+                datasets.forEach(ds => {
+                    if (!ds || !Array.isArray(ds.data)) return;
+                    const val = ds.data[i] || 0;
+                    if (ds.yAxis === 'right') sumRight += val;
+                    else sumLeft += val;
+                });
+                leftMin = Math.min(leftMin, sumLeft);
+                leftMax = Math.max(leftMax, sumLeft);
+                rightMin = Math.min(rightMin, sumRight);
+                rightMax = Math.max(rightMax, sumRight);
+            }
+        } else {
+            datasets.forEach(ds => {
+                if (!ds || !Array.isArray(ds.data)) return;
+                const minVal = Math.min(...ds.data);
+                const maxVal = Math.max(...ds.data);
+                if (ds.yAxis === 'right') {
+                    rightMin = Math.min(rightMin, minVal);
+                    rightMax = Math.max(rightMax, maxVal);
+                } else {
+                    leftMin = Math.min(leftMin, minVal);
+                    leftMax = Math.max(leftMax, maxVal);
+                }
+            });
+        }
+        return { leftMin, leftMax, rightMin, rightMax };
+    }
+
     drawAxes(maxLeft, maxRight, labels, spacingX) {
         const ctx = this.ctx;
         ctx.strokeStyle = '#E5E7EB';
@@ -138,14 +175,6 @@ class ChartCore {
             ctx.fillText(yAxisLabel, 0, 0);
             ctx.restore();
         }
-
-        // X-axis labels
-        ctx.fillStyle = '#111827';
-        ctx.textAlign = 'center';
-        labels.forEach((label, i) => {
-            const x = this.padding + i * spacingX;
-            ctx.fillText(label, x, this.height - this.padding + 20);
-        });
     }
 
     drawLegend(datasets) {
@@ -283,7 +312,8 @@ class BarChart extends ChartCore {
         const groupSpacing = 0; // No extra group spacing needed with dynamic spacing
         const barSpacing = 10;
 
-        const { leftMax, rightMax } = this.getAxisMaxValues();
+        // Use min/max logic for axis
+        const { leftMin, leftMax, rightMin, rightMax } = this.getAxisMinMaxValues();
 
         ctx.clearRect(0, 0, this.width, this.height);
         this.drawAxes(leftMax, rightMax, labels, spacingX + groupSpacing);
@@ -375,6 +405,20 @@ class BarChart extends ChartCore {
             });
         });
 
+        // After drawing bars, draw X-axis labels centered under the group
+        ctx.fillStyle = '#111827';
+        ctx.textAlign = 'center';
+        labels.forEach((label, i) => {
+            let x;
+            if (stacked) {
+                // Center under the bar
+                x = this.padding + i * spacingX + spacingX / 2;
+            } else {
+                // Center under the group of bars
+                x = this.padding + i * spacingX + spacingX / 2;
+            }
+            ctx.fillText(label, x, this.height - this.padding + 20);
+        });
         this.drawLegend(datasets);
     }
 }
@@ -511,7 +555,8 @@ class MixedChart extends ChartCore {
         const groupSpacing = 40;
         const barSpacing = 10;
 
-        const { leftMax, rightMax } = this.getAxisMaxValues();
+        // Use min/max logic for axis
+        const { leftMin, leftMax, rightMin, rightMax } = this.getAxisMinMaxValues();
 
         ctx.clearRect(0, 0, this.width, this.height);
         this.drawAxes(leftMax, rightMax, labels, spacingX + groupSpacing);
@@ -606,6 +651,14 @@ class MixedChart extends ChartCore {
             });
         });
 
+        // After drawing, draw X-axis labels centered under the group
+        ctx.fillStyle = '#111827';
+        ctx.textAlign = 'center';
+        labels.forEach((label, i) => {
+            // Center under the group (bar/line)
+            const x = this.padding + i * (spacingX + groupSpacing) + (spacingX + groupSpacing) / 2;
+            ctx.fillText(label, x, this.height - this.padding + 20);
+        });
         this.drawLegend(datasets);
     }
 }

@@ -18,14 +18,14 @@ try {
     // echo "<p>✅ Connected to database successfully.</p>";
 
     // Query: group by month from created_at, show sum(amount) per type
-    $stmt = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, type, SUM(amount) as amount FROM transactions GROUP BY month, type ORDER BY month, type LIMIT 10");
+    $stmt = $pdo->query("SELECT DATE_FORMAT(created_at, '%Y') as year, SUM(amount) as amount FROM transactions GROUP BY year LIMIT 100");
     $data = $stmt->fetchAll();
     // echo "<pre>Sample data:\n" . print_r($data, true) . "</pre>";
 
     require_once 'ChartDataHelper.php';
     $helper = new ChartDataHelper($data);
     $json = $helper->prepareChartData([
-        'x' => 'month',
+        'x' => 'year',
         'y' => ['amount'],
         'type' => 'bar',
         'label' => 'type',
