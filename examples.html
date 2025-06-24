@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyChart.js Examples</title>
+    <script src="myChart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        canvas {
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
+    <h1 class="text-3xl font-bold text-blue-700 mb-8">MyChart.js Example Gallery</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
+        <!-- Bar Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Bar Chart</h2>
+            <canvas id="barExample" width="400" height="300"></canvas>
+        </div>
+        <!-- Line Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Line Chart</h2>
+            <canvas id="lineExample" width="400" height="300"></canvas>
+        </div>
+        <!-- Pie Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Pie Chart</h2>
+            <canvas id="pieExample" width="400" height="300"></canvas>
+        </div>
+        <!-- Mixed Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Mixed Chart</h2>
+            <canvas id="mixedExample" width="400" height="300"></canvas>
+        </div>
+        <!-- Stacked Bar Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Stacked Bar Chart</h2>
+            <canvas id="stackedBarExample" width="400" height="300"></canvas>
+        </div>
+        <!-- Multi-Series Line Chart -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <h2 class="text-xl font-semibold mb-2">Multi-Series Line Chart</h2>
+            <canvas id="multiLineExample" width="400" height="300"></canvas>
+        </div>
+    </div>
+    <script>
+        // Bar Chart
+        window.drawChart('bar', ['2019', '2020', '2021', '2022'], [12, 19, 3, 5], 'barExample', { yAxisLabel: 'Units Sold' });
+        // Line Chart
+        window.drawChart('line', ['Jan', 'Feb', 'Mar', 'Apr'], [5, 15, 10, 25], 'lineExample', { yAxisLabel: 'Visitors' });
+        // Pie Chart
+        window.drawChart('pie', ['Red', 'Blue', 'Yellow'], [12, 19, 3], 'pieExample');
+        // Mixed Chart
+        window.drawChart('mixed', ['2023', '2024', '2025'], [
+            { label: 'Sales', data: [30, 40, 35], backgroundColor: '#3b82f6', type: 'bar' },
+            { label: 'Profit', data: [10, 15, 12], borderColor: '#10b981', pointColor: '#10b981', type: 'line' }
+        ], 'mixedExample', { yAxisLabel: 'Amount ($)' });
+        // Stacked Bar Chart
+        window.drawChart('bar', ['2019', '2020', '2021', '2022'], [
+            { label: 'Product A', data: [30, 40, 35, 50], backgroundColor: 'rgba(59,130,246,0.7)', type: 'bar' },
+            { label: 'Product B', data: [20, 25, 30, 35], backgroundColor: 'rgba(245,158,66,0.5)', type: 'bar' }
+        ], 'stackedBarExample', { stacked: true, yAxisLabel: 'Revenue ($)' });
+        // Multi-Series Line Chart
+        window.drawChart('line', ['Jan', 'Feb', 'Mar', 'Apr', 'May'], [
+            { label: 'Series 1', data: [10, 15, 8, 12, 20], borderColor: '#3b82f6', pointColor: '#3b82f6' },
+            { label: 'Series 2', data: [7, 12, 14, 9, 16], borderColor: '#ef4444', pointColor: '#ef4444' }
+        ], 'multiLineExample', { yAxisLabel: 'Value' });
+    </script>
+</body>
+
+</html>
