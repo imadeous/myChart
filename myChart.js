@@ -110,6 +110,19 @@ class ChartCore {
         ctx.lineTo(this.width - this.padding, this.height - this.padding);
         ctx.stroke();
 
+        // Y-axis label (if provided)
+        const yAxisLabel = this.config.options && this.config.options.yAxisLabel;
+        if (yAxisLabel) {
+            ctx.save();
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillStyle = '#1e293b';
+            ctx.textAlign = 'center';
+            ctx.translate(this.padding - 40, this.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(yAxisLabel, 0, 0);
+            ctx.restore();
+        }
+
         // X-axis labels
         ctx.fillStyle = '#111827';
         ctx.textAlign = 'center';
@@ -161,6 +174,22 @@ class ChartCore {
         link.click();
     }
 }
+
+/**
+ * Chart dataset color configuration:
+ * - backgroundColor: string | string[] (any valid CSS color, including rgba/hex with alpha)
+ * - borderColor: string (any valid CSS color)
+ * - pointColor: string (any valid CSS color)
+ *
+ * Example:
+ * {
+ *   label: 'My Series',
+ *   data: [1,2,3],
+ *   backgroundColor: 'rgba(59,130,246,0.5)',
+ *   borderColor: '#3b82f6',
+ *   pointColor: '#3b82f6cc'
+ * }
+ */
 
 // Additional work: LineChart and BarChart will be updated to use getAxisMaxValues() and respect yAxis config.
 // Stacked bar + SVG export will follow in next commits.
@@ -604,7 +633,7 @@ typeof window.drawChart === 'undefined' && (window.drawChart = (type, labels, da
                 datasets: data.map((ds, i) => ({
                     ...ds,
                     borderColor: ds.borderColor || palette[i % palette.length],
-                    backgroundColor: ds.backgroundColor || palette[i % palette.length] + '88',
+                    backgroundColor: ds.backgroundColor || (palette[i % palette.length] + '88'),
                     pointColor: ds.pointColor || palette[i % palette.length],
                     type: ds.type || type
                 }))

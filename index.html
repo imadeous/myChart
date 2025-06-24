@@ -29,7 +29,7 @@
         <div id="datasetControls" class="w-full flex flex-col gap-2 items-center"></div>
     </div>
     <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center mb-4">
-        <canvas id="chartCanvas" width="600" height="400" class="mb-2"></canvas>
+        <canvas id="chartCanvas" width="600" height="400" class="mb-2 h-auto rounded shadow"></canvas>
     </div>
 
     <script src="myChart.js"></script>
@@ -169,13 +169,28 @@
                 ds.data.forEach((series, idx) => {
                     const div = document.createElement('div');
                     div.className = 'flex items-center gap-2 mb-2';
+                    // Default alpha: 1 if not set
+                    const alpha = typeof series._alpha === 'number' ? series._alpha : 1;
                     div.innerHTML = `
                         <label class="font-medium text-gray-700">${series.label || 'Data'}:</label>
                         <input type="text" id="series-${idx}" value="${series.data.join(',')}" class="border border-gray-300 rounded px-2 py-1 w-48" />
                         <input type="color" id="color-${idx}" value="${series.borderColor || series.backgroundColor || '#3b82f6'}" />
+                        <input type="range" id="alpha-${idx}" min="0" max="1" step="0.01" value="${alpha}" style="width:70px;" />
+                        <span id="alpha-value-${idx}">${alpha}</span>
                     `;
                     datasetControls.appendChild(div);
                 });
+            }
+            // Y-axis label input (not for pie)
+            if (chartType !== 'pie') {
+                const yLabelDiv = document.createElement('div');
+                yLabelDiv.className = 'flex items-center gap-2 mb-2';
+                yLabelDiv.innerHTML = `<label class="font-medium text-gray-700">Y-Axis Label:</label><input type="text" id="yAxisLabelInput" class="border border-gray-300 rounded px-2 py-1 w-48" value="${window._yAxisLabel || ''}" />`;
+                datasetControls.appendChild(yLabelDiv);
+                document.getElementById('yAxisLabelInput').oninput = function () {
+                    window._yAxisLabel = this.value;
+                    updateDatasetFromControls();
+                };
             }
             // Smoothness slider for line charts
             if (chartType === 'line') {
@@ -214,8 +229,10 @@
                     ds.data.forEach((series, idx) => {
                         const seriesInput = document.getElementById('series-' + idx);
                         const colorInput = document.getElementById('color-' + idx);
+                        const alphaInput = document.getElementById('alpha-' + idx);
                         if (seriesInput) seriesInput.oninput = updateDatasetFromControls;
                         if (colorInput) colorInput.oninput = updateDatasetFromControls;
+                        if (alphaInput) alphaInput.oninput = updateDatasetFromControls;
                     });
                 }
             }, 0);
@@ -268,11 +285,31 @@
                 ds.data.forEach((series, idx) => {
                     series.data = document.getElementById('series-' + idx).value.split(',').map(x => parseFloat(x.trim()) || 0);
                     const color = document.getElementById('color-' + idx).value;
-                    series.borderColor = color;
-                    series.backgroundColor = color;
-                    series.pointColor = color;
+                    const alpha = parseFloat(document.getElementById('alpha-' + idx).value);
+                    // Store alpha for UI persistence
+                    series._alpha = alpha;
+                    // Convert hex to rgba
+                    function hexToRgba(hex, a) {
+                        let c = hex.replace('#', '');
+                        if (c.length === 3) c = c.split('').map(x => x + x).join('');
+                        const num = parseInt(c, 16);
+                        return `rgba(${(num >> 16) & 255},${(num >> 8) & 255},${num & 255},${a})`;
+                    }
+                    const rgba = hexToRgba(color, alpha);
+                    series.borderColor = rgba;
+                    series.backgroundColor = rgba;
+                    series.pointColor = rgba;
+                    // Update alpha value display
+                    document.getElementById('alpha-value-' + idx).textContent = alpha;
+                    document.getElementById('alpha-' + idx).oninput = function () {
+                        document.getElementById('alpha-value-' + idx).textContent = this.value;
+                        updateDatasetFromControls();
+                    };
                 });
             }
+            // Y-axis label
+            ds.options = ds.options || {};
+            ds.options.yAxisLabel = window._yAxisLabel || '';
             renderChart();
         }
         document.getElementById('chartType').addEventListener('change', renderDatasetControls);
