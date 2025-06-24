@@ -22,11 +22,8 @@ A lightweight, object-oriented JavaScript charting library inspired by Chart.js.
 - 🏷 Y-axis label support (customizable)
 - 🌀 Smooth animations with toggle
 - 🖼 Export as PNG image
-- 📐 Auto-resizing and fully responsive (mobile-first)
 - 🧱 Extensible OOP architecture
-- 📝 Live dataset editing: add/remove/rename series and labels
 - 🎨 Modern UI with Tailwind CSS
-- 📋 Pie chart: color legend for each slice
 - ⚠️ Donut and gap modifiers for pie charts: **TODO** (see code comments)
 
 ---
