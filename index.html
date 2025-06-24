@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        canvas {
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
+    <h1 class="text-3xl font-bold text-blue-700 mb-8">Test Different Chart Types and Datasets</h1>
+    <div class="flex flex-wrap gap-4 items-center bg-white p-6 rounded-lg shadow mb-8">
+        <label for="chartType" class="font-medium text-gray-700">Chart Type:</label>
+        <select id="chartType"
+            class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onchange="renderDatasetControls(); renderChart();">
+            <option value="bar">Bar</option>
+            <option value="line">Line</option>
+            <option value="pie">Pie</option>
+            <option value="mixed">Mixed</option>
+        </select>
+        <button onclick="toggleDarkMode()" id="darkModeBtn"
+            class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">🌙</button>
+        <button onclick="toggleAnimation()" id="animBtn"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Animation: On</button>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+        <canvas id="chartCanvas" width="600" height="400" class="mb-2"></canvas>
+    </div>
+    <div id="datasetControls" class="w-full flex flex-col gap-2 mb-4"></div>
+    <script src="myChart.js"></script>
+    <script>
+        // Example datasets
+        const datasets = {
+            a: { labels: ['Red', 'Blue', 'Yellow'], data: [12, 19, 3] },
+            b: { labels: ['Apple', 'Banana', 'Cherry', 'Date'], data: [5, 15, 8, 10] },
+            c: { labels: ['Q1', 'Q2', 'Q3', 'Q4'], data: [20, 10, 30, 25] },
+            multi: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                data: [
+                    { label: 'Series 1', data: [10, 15, 8, 12, 20], borderColor: '#3b82f6', pointColor: '#3b82f6' },
+                    { label: 'Series 2', data: [7, 12, 14, 9, 16], borderColor: '#ef4444', pointColor: '#ef4444' }
+                ]
+            },
+            stacked: {
+                labels: ['2019', '2020', '2021', '2022'],
+                data: [
+                    { label: 'Product A', data: [30, 40, 35, 50], backgroundColor: '#3b82f6', type: 'bar' },
+                    { label: 'Product B', data: [20, 25, 30, 35], backgroundColor: '#f59e42', type: 'bar' }
+                ],
+                options: { stacked: true }
+            },
+            mixed: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                data: [
+                    { label: 'Sales', data: [30, 40, 35, 50], backgroundColor: '#3b82f6', type: 'bar' },
+                    { label: 'Profit', data: [10, 15, 12, 18], borderColor: '#10b981', pointColor: '#10b981', type: 'line' }
+                ]
+            }
+        };
+
+        // --- DOMContentLoaded for safe initialization ---
+        document.addEventListener('DOMContentLoaded', function () {
+            renderDatasetControls();
+            renderChart();
+        });
+
+        // --- Remove all references to non-existent elements (dataset, theme, animation select) ---
+        // --- renderChart now always uses window._currentDataset ---
+        function renderChart() {
+            const chartType = document.getElementById('chartType').value;
+            const ds = window._currentDataset;
+            let labels = ds.labels;
+            let data = ds.data;
+            let options = ds.options || {};
+            // Ensure options.stacked is set for bar chart if stacked is toggled
+            if (chartType === 'bar' && window._currentStacked) {
+                options = { stacked: true };
+            }
+            // Pass smoothness for line charts
+            if (chartType === 'line') {
+                options.smoothness = window._lineSmoothness || 1;
+            }
+            if (typeof drawChart === 'function') {
+                drawChart(chartType, labels, data, 'chartCanvas', options);
+            } else {
+                alert('drawChart function not found in myChart.js');
+            }
+        }
+
+        function downloadPNG() {
+            const canvas = document.getElementById('chartCanvas');
+            if (canvas && canvas._chartInstance && typeof canvas._chartInstance.exportPNG === 'function') {
+                canvas._chartInstance.exportPNG();
+            } else {
+                // fallback
+                const link = document.createElement('a');
+                link.download = 'chart.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        }
+
+        function randomizeData() {
+            const datasetKey = document.getElementById('dataset').value;
+            const ds = datasets[datasetKey];
+            if (Array.isArray(ds.data)) {
+                if (typeof ds.data[0] === 'object' && Array.isArray(ds.data[0].data)) {
+                    ds.data.forEach(series => {
+                        series.data = series.data.map(() => Math.floor(Math.random() * 50) + 1);
+                    });
+                } else {
+                    ds.data = ds.data.map(() => Math.floor(Math.random() * 50) + 1);
+                }
+            }
+            renderChart();
+        }
+
+        // --- Dataset Controls Redesign ---
+        function renderDatasetControls() {
+            const chartType = document.getElementById('chartType').value;
+            const datasetControls = document.getElementById('datasetControls');
+            datasetControls.innerHTML = '';
+            let ds;
+            if (chartType === 'pie') {
+                ds = { labels: ['A', 'B', 'C'], data: [10, 20, 30] };
+            } else if (chartType === 'mixed') {
+                ds = {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    data: [
+                        { label: 'Bar', data: [10, 20, 30, 40], backgroundColor: '#3b82f6', type: 'bar' },
+                        { label: 'Line', data: [5, 15, 10, 25], borderColor: '#ef4444', pointColor: '#ef4444', type: 'line' }
+                    ]
+                };
+            } else {
+                // Multi-series and stacked support for bar/line
+                ds = {
+                    labels: ['A', 'B', 'C', 'D'],
+                    data: [
+                        { label: 'Series 1', data: [10, 20, 30, 40], borderColor: '#3b82f6', backgroundColor: '#3b82f6', pointColor: '#3b82f6', type: chartType },
+                        { label: 'Series 2', data: [15, 10, 25, 18], borderColor: '#ef4444', backgroundColor: '#ef4444', pointColor: '#ef4444', type: chartType }
+                    ],
+                    options: chartType === 'bar' && window._currentStacked ? { stacked: true } : undefined
+                };
+            }
+            window._currentDataset = ds;
+            // Label controls
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'flex items-center gap-2 mb-2';
+            labelDiv.innerHTML = `
+                <label class="font-medium text-gray-700">Labels:</label>
+                <input type="text" id="labelsInput" value="${ds.labels.join(',')}" class="border border-gray-300 rounded px-2 py-1 w-64" />
+            `;
+            datasetControls.appendChild(labelDiv);
+            // Series controls
+            if (chartType === 'pie') {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2 mb-2';
+                div.innerHTML = `
+                    <label class="font-medium text-gray-700">Data:</label>
+                    <input type="text" id="series-0" value="${ds.data.join(',')}" class="border border-gray-300 rounded px-2 py-1 w-48" />
+                `;
+                datasetControls.appendChild(div);
+            } else {
+                ds.data.forEach((series, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2 mb-2';
+                    div.innerHTML = `
+                        <label class="font-medium text-gray-700">${series.label || 'Data'}:</label>
+                        <input type="text" id="series-${idx}" value="${series.data.join(',')}" class="border border-gray-300 rounded px-2 py-1 w-48" />
+                        <input type="color" id="color-${idx}" value="${series.borderColor || series.backgroundColor || '#3b82f6'}" />
+                    `;
+                    datasetControls.appendChild(div);
+                });
+            }
+            // Smoothness slider for line charts
+            if (chartType === 'line') {
+                if (window._lineSmoothness == null) window._lineSmoothness = 5;
+                const smoothDiv = document.createElement('div');
+                smoothDiv.className = 'flex items-center gap-2 mb-2';
+                smoothDiv.innerHTML = `<label class="font-medium text-gray-700">Curved Lines:</label><input type="range" min="1" max="10" value="${window._lineSmoothness}" id="smoothnessSlider" /><span id="smoothnessValue">${window._lineSmoothness}</span>`;
+                datasetControls.appendChild(smoothDiv);
+                document.getElementById('smoothnessSlider').oninput = function () {
+                    window._lineSmoothness = parseInt(this.value);
+                    document.getElementById('smoothnessValue').textContent = this.value;
+                    renderChart();
+                };
+            }
+            // Stacked toggle for bar
+            if (chartType === 'bar') {
+                const stackDiv = document.createElement('div');
+                stackDiv.className = 'flex items-center gap-2 mb-2';
+                stackDiv.innerHTML = `<label class="font-medium text-gray-700">Stacked:</label><input type="checkbox" id="stackedToggle" ${window._currentStacked ? 'checked' : ''} />`;
+                datasetControls.appendChild(stackDiv);
+                document.getElementById('stackedToggle').onchange = function () {
+                    window._currentStacked = this.checked;
+                    window._currentDataset.options = this.checked ? { stacked: true } : undefined;
+                    renderChart();
+                    renderDatasetControls();
+                };
+            }
+            // Live update on input change
+            setTimeout(() => {
+                const labelsInput = document.getElementById('labelsInput');
+                if (labelsInput) labelsInput.oninput = updateDatasetFromControls;
+                if (chartType === 'pie') {
+                    const seriesInput = document.getElementById('series-0');
+                    if (seriesInput) seriesInput.oninput = updateDatasetFromControls;
+                } else {
+                    ds.data.forEach((series, idx) => {
+                        const seriesInput = document.getElementById('series-' + idx);
+                        const colorInput = document.getElementById('color-' + idx);
+                        if (seriesInput) seriesInput.oninput = updateDatasetFromControls;
+                        if (colorInput) colorInput.oninput = updateDatasetFromControls;
+                    });
+                }
+            }, 0);
+        }
+        function addLabel() {
+            const ds = window._currentDataset;
+            ds.labels.push('New');
+            ds.data.forEach(series => series.data.push(0));
+            renderDatasetControls();
+            renderChart();
+        }
+        function removeLabel() {
+            const ds = window._currentDataset;
+            if (ds.labels.length > 1) {
+                ds.labels.pop();
+                ds.data.forEach(series => series.data.pop());
+                renderDatasetControls();
+                renderChart();
+            }
+        }
+        function addSeries() {
+            const ds = window._currentDataset;
+            const chartType = document.getElementById('chartType').value;
+            // Ensure new series has the correct length and color
+            const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+            ds.data.push({ label: `Series ${ds.data.length + 1}`, data: ds.labels.map(() => 0), borderColor: color, backgroundColor: color, pointColor: color, type: chartType });
+            renderDatasetControls();
+            renderChart();
+        }
+        function removeSeries(idx) {
+            const ds = window._currentDataset;
+            if (ds.data.length > 1) {
+                ds.data.splice(idx, 1);
+                renderDatasetControls();
+                renderChart();
+            }
+        }
+        function randomizeSeries(idx) {
+            const ds = window._currentDataset;
+            ds.data[idx].data = ds.data[idx].data.map(() => Math.floor(Math.random() * 50) + 1);
+            renderDatasetControls();
+        }
+        function updateDatasetFromControls() {
+            const ds = window._currentDataset;
+            ds.labels = document.getElementById('labelsInput').value.split(',').map(x => x.trim());
+            const chartType = document.getElementById('chartType').value;
+            if (chartType === 'pie') {
+                ds.data = document.getElementById('series-0').value.split(',').map(x => parseFloat(x.trim()) || 0);
+            } else {
+                ds.data.forEach((series, idx) => {
+                    series.data = document.getElementById('series-' + idx).value.split(',').map(x => parseFloat(x.trim()) || 0);
+                    const color = document.getElementById('color-' + idx).value;
+                    series.borderColor = color;
+                    series.backgroundColor = color;
+                    series.pointColor = color;
+                });
+            }
+            renderChart();
+        }
+        document.getElementById('chartType').addEventListener('change', renderDatasetControls);
+        window.onload = function () { renderDatasetControls(); renderChart(); };
+
+
+        // Set default animation state
+        window.__chartAnimation = true;
+
+        // Patch drawChart to respect animation toggle
+        if (!window._origDrawChart) {
+            window._origDrawChart = window.drawChart;
+            window.drawChart = function (type, labels, data, canvasId, options) {
+                if (!window.__chartAnimation) {
+                    const ChartCoreProto = window.ChartCore && window.ChartCore.prototype;
+                    if (ChartCoreProto && !ChartCoreProto.__noAnimPatched) {
+                        ChartCoreProto.animate = function () { this.animationProgress = 1; this.draw(1); };
+                        ChartCoreProto.__noAnimPatched = true;
+                    }
+                } else {
+                    const ChartCoreProto = window.ChartCore && window.ChartCore.prototype;
+                    if (ChartCoreProto && ChartCoreProto.__noAnimPatched) {
+                        delete ChartCoreProto.animate;
+                        delete ChartCoreProto.__noAnimPatched;
+                    }
+                }
+                window._origDrawChart(type, labels, data, canvasId, options);
+            };
+        }
+        // Initial render
+        window.onload = renderChart;
+
+        // --- Dark Mode Toggle ---
+        function toggleDarkMode() {
+            document.body.classList.toggle('bg-gray-900');
+            document.body.classList.toggle('text-white');
+            document.body.classList.toggle('bg-gray-50');
+            document.body.classList.toggle('text-gray-900');
+            const btn = document.getElementById('darkModeBtn');
+            btn.textContent = document.body.classList.contains('bg-gray-900') ? '☀️' : '🌙';
+        }
+        // --- Animation Toggle ---
+        function toggleAnimation() {
+            window.__chartAnimation = !window.__chartAnimation;
+            const btn = document.getElementById('animBtn');
+            btn.textContent = 'Animation: ' + (window.__chartAnimation ? 'On' : 'Off');
+        }
+        window.__chartAnimation = true;
+        // Patch drawChart to respect animation toggle
+        if (!window._origDrawChart) {
+            window._origDrawChart = window.drawChart;
+            window.drawChart = function (type, labels, data, canvasId, options) {
+                if (!window.__chartAnimation) {
+                    const ChartCoreProto = window.ChartCore && window.ChartCore.prototype;
+                    if (ChartCoreProto && !ChartCoreProto.__noAnimPatched) {
+                        ChartCoreProto.animate = function () { this.animationProgress = 1; this.draw(1); };
+                        ChartCoreProto.__noAnimPatched = true;
+                    }
+                } else {
+                    const ChartCoreProto = window.ChartCore && window.ChartCore.prototype;
+                    if (ChartCoreProto && ChartCoreProto.__noAnimPatched) {
+                        delete ChartCoreProto.animate;
+                        delete ChartCoreProto.__noAnimPatched;
+                    }
+                }
+                window._origDrawChart(type, labels, data, canvasId, options);
+            };
+        }
+    </script>
+</body>
+
+</html>
