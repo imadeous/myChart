@@ -14,25 +14,40 @@
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen flex flex-col items-center py-10">
-    <h1 class="text-3xl font-bold text-blue-700 mb-8">Test Different Chart Types and Datasets</h1>
-    <div class="flex flex-wrap gap-4 items-center bg-white p-6 rounded-lg shadow mb-8">
-        <label for="chartType" class="font-medium text-gray-700">Chart Type:</label>
-        <select id="chartType"
-            class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            onchange="renderDatasetControls(); renderChart();">
-            <option value="bar">Bar</option>
-            <option value="line">Line</option>
-            <option value="pie">Pie</option>
-            <option value="mixed">Mixed</option>
-        </select>
-        <button onclick="toggleAnimation()" id="animBtn"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Animation: On</button>
-    </div>
-    <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-        <canvas id="chartCanvas" width="600" height="400" class="mb-2"></canvas>
-    </div>
-    <div id="datasetControls" class="w-full flex flex-col gap-2 mb-4"></div>
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 min-h-screen flex flex-col items-center py-6 px-2">
+    <main class="w-full max-w-3xl flex flex-col gap-6">
+        <header class="flex flex-col items-center gap-2">
+            <h1 class="text-4xl font-extrabold text-blue-700 tracking-tight text-center drop-shadow mb-2">MyChart.js Playground
+            </h1>
+            <p class="text-gray-600 text-center text-lg max-w-xl">Test and visualize different chart types, datasets, and
+            options. Instantly see your changes live!</p>
+        </header>
+        <section class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                <div class="flex flex-col gap-1 w-full sm:w-auto">
+                    <label for="chartType" class="font-semibold text-gray-700">Chart Type</label>
+                    <select id="chartType"
+                        class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-base font-medium bg-gray-50"
+                        onchange="renderDatasetControls(); renderChart();">
+                        <option value="bar">Bar</option>
+                        <option value="line">Line</option>
+                        <option value="pie">Pie</option>
+                        <option value="mixed">Mixed</option>
+                    </select>
+                </div>
+                <button onclick="toggleAnimation()" id="animBtn"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition w-full sm:w-auto">Animation:
+                    On</button>
+            </div>
+        </section>
+        <section class="bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col items-center">
+            <div class="w-full max-w-2xl aspect-[3/2] flex items-center justify-center">
+                <canvas id="chartCanvas" class="w-full h-full max-h-[400px]"
+                    style="max-width:100%;height:auto;"></canvas>
+            </div>
+        </section>
+        <section id="datasetControls" class="w-full max-w-2xl flex flex-col gap-3 mb-4"></section>
+    </main>
     <script src="myChart.js"></script>
     <script>
         // Example datasets
