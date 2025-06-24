@@ -143,7 +143,8 @@ class ChartCore {
             ctx.moveTo(this.padding, yPos);
             ctx.lineTo(this.width - this.padding, yPos);
             ctx.stroke();
-            ctx.fillText(y, this.padding - 10, yPos + 4);
+            // Format y label with commas
+            ctx.fillText(typeof y === 'number' ? y.toLocaleString() : y, this.padding - 10, yPos + 4);
         }
 
         if (maxRight > 0) {
@@ -151,7 +152,7 @@ class ChartCore {
             const yStepR = niceStep(maxRight);
             for (let y = 0; y <= maxRight; y += yStepR) {
                 const yPos = this.height - this.padding - (y / maxRight) * this.graphHeight;
-                ctx.fillText(y, this.width - this.padding + 10, yPos + 4);
+                ctx.fillText(typeof y === 'number' ? y.toLocaleString() : y, this.width - this.padding + 10, yPos + 4);
             }
         }
 
@@ -212,11 +213,21 @@ class ChartCore {
         if (found) {
             const xLabel = found.xLabel || (this.config.data && this.config.data.labels && this.config.data.labels[found.i]) || '';
             const value = found.value;
-            const valueStr = (typeof value === 'number') ? value.toLocaleString() : value;
+            // Format value with thousandth place commas if number
+            let valueStr;
+            if (typeof value === 'number') {
+                valueStr = value.toLocaleString();
+            } else if (!isNaN(value) && value !== null && value !== '') {
+                // If value is a numeric string, format as number
+                const num = Number(value);
+                valueStr = isNaN(num) ? value : num.toLocaleString();
+            } else {
+                valueStr = value;
+            }
             tooltip = document.createElement('div');
             tooltip.id = 'mychart-tooltip';
             tooltip.className = 'pointer-events-none fixed z-50 px-2 py-1 rounded-lg shadow-lg bg-slate-800/90 text-slate-100 text-xs font-sans';
-            tooltip.innerHTML = `<div class='font-bold text-slate-100'>${xLabel || '&nbsp;'}</div><div class='font-bold text-xs text-slate-50'>${valueStr}</div>`;
+            tooltip.innerHTML = `<div class='font-bold text-slate-100'>${xLabel}</div><div class='font-bold text-xs text-slate-50'>${valueStr}</div>`;
             document.body.appendChild(tooltip);
             const canvasRect = this.canvas.getBoundingClientRect();
             let tx = canvasRect.left + found.x + 16;
@@ -372,11 +383,11 @@ class BarChart extends ChartCore {
                             : ds.backgroundColor || ds.borderColor;
 
                         ctx.fillRect(x, y, w, height);
-
                         if (progress === 1) {
                             ctx.fillStyle = '#1F2937';
                             ctx.textAlign = 'center';
-                            ctx.fillText(val, x + w / 2, y - 6);
+                            // Format bar label with commas
+                            ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
 
                         if (axis === 'right') cumHeightsRight[i] += height;
@@ -394,39 +405,16 @@ class BarChart extends ChartCore {
                             : ds.backgroundColor || ds.borderColor;
 
                         ctx.fillRect(x, y, w, height);
-
                         if (progress === 1) {
                             ctx.fillStyle = '#1F2937';
                             ctx.textAlign = 'center';
-                            ctx.fillText(val, x + w / 2, y - 6);
+                            // Format bar label with commas
+                            ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
                     }
-                } else if (ds.type === 'line') {
-                    ctx.strokeStyle = ds.borderColor;
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-
-                    for (let k = 0; k <= i; k++) {
-                        const x = this.padding + k * spacingX;
-                        const yVal = ds.data[k];
-                        if (yVal == null) continue;
-                        const y = this.height - this.padding - (yVal / maxValue) * this.graphHeight * progress;
-                        if (k === 0) ctx.moveTo(x, y);
-                        else ctx.lineTo(x, y);
-                    }
-                    ctx.stroke();
-
-                    // Draw points
-                    const xPoint = this.padding + i * spacingX;
-                    const yPoint = this.height - this.padding - (val / maxValue) * this.graphHeight * progress;
-                    ctx.fillStyle = ds.pointColor;
-                    ctx.beginPath();
-                    ctx.arc(xPoint, yPoint, 5, 0, Math.PI * 2);
-                    ctx.fill();
                 }
             });
         });
-
         // After drawing bars, draw X-axis labels centered under the group
         ctx.fillStyle = '#111827';
         ctx.textAlign = 'center';
@@ -545,7 +533,16 @@ class PieChart extends ChartCore {
         this.draw(this.animationProgress);
         if (found) {
             const xLabel = found.label;
-            const valueStr = (typeof found.value === 'number') ? found.value.toLocaleString() : found.value;
+            // Format value with thousandth place commas if number
+            let valueStr;
+            if (typeof found.value === 'number') {
+                valueStr = found.value.toLocaleString();
+            } else if (!isNaN(found.value) && found.value !== null && found.value !== '') {
+                const num = Number(found.value);
+                valueStr = isNaN(num) ? found.value : num.toLocaleString();
+            } else {
+                valueStr = found.value;
+            }
             tooltip = document.createElement('div');
             tooltip.id = 'mychart-tooltip';
             tooltip.className = 'pointer-events-none fixed z-50 px-2 py-1 rounded-lg shadow-lg bg-slate-800/90 text-slate-100 text-xs font-sans';
@@ -614,11 +611,11 @@ class MixedChart extends ChartCore {
                             : ds.backgroundColor || ds.borderColor;
 
                         ctx.fillRect(x, y, w, height);
-
                         if (progress === 1) {
                             ctx.fillStyle = '#1F2937';
                             ctx.textAlign = 'center';
-                            ctx.fillText(val, x + w / 2, y - 6);
+                            // Format bar label with commas
+                            ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
 
                         if (axis === 'right') cumHeightsRight[i] += height;
@@ -636,11 +633,11 @@ class MixedChart extends ChartCore {
                             : ds.backgroundColor || ds.borderColor;
 
                         ctx.fillRect(x, y, w, height);
-
                         if (progress === 1) {
                             ctx.fillStyle = '#1F2937';
                             ctx.textAlign = 'center';
-                            ctx.fillText(val, x + w / 2, y - 6);
+                            // Format bar label with commas
+                            ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
                     }
                 } else if (ds.type === 'line') {
