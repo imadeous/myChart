@@ -4,9 +4,10 @@ A lightweight, object-oriented JavaScript charting library inspired by Chart.js.
 
 ---
 
-## ✨ Demo
+## ✨ Demo & Examples
 
-Open `index.html` in your browser for a full-featured playground UI:
+- **Playground:** Open `index.html` for a full-featured interactive UI.
+- **Static Gallery:** Open `examples.html` to see all supported chart types as static examples (no controls, just canvases).
 
 ![MyChart.js Demo Screenshot](demo-screenshot.png) <!-- Add a screenshot if available -->
 
@@ -63,6 +64,8 @@ Open `index.html` in your browser. Use the UI to:
 - Toggle animation
 - Export the chart as PNG
 - See tooltips and legends for all chart types
+
+Or open `examples.html` to see static examples of all chart types.
 
 ---
 
