@@ -192,23 +192,39 @@ class ChartCore {
     }
 
     handleHover(e) {
+        // Remove any existing tooltip
+        let tooltip = document.getElementById('mychart-tooltip');
+        if (tooltip) tooltip.remove();
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        const ctx = this.ctx;
         this.draw(this.animationProgress);
         if (!this.allPoints) return;
+        let found = null;
         for (let p of this.allPoints) {
             const dx = mouseX - p.x;
             const dy = mouseY - p.y;
-            if (Math.sqrt(dx * dx + dy * dy) < 6) {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(p.x + 10, p.y - 30, 100, 24);
-                ctx.fillStyle = 'white';
-                ctx.font = '12px sans-serif';
-                ctx.fillText(`${p.label}: ${p.value}`, p.x + 15, p.y - 13);
+            if (Math.sqrt(dx * dx + dy * dy) < 8) {
+                found = p;
                 break;
             }
+        }
+        if (found) {
+            const xLabel = found.xLabel || (this.config.data && this.config.data.labels && this.config.data.labels[found.i]) || '';
+            const value = found.value;
+            const valueStr = (typeof value === 'number') ? value.toLocaleString() : value;
+            tooltip = document.createElement('div');
+            tooltip.id = 'mychart-tooltip';
+            tooltip.className = 'pointer-events-none fixed z-50 px-2 py-1 rounded-lg shadow-lg bg-slate-800/90 text-slate-100 text-xs font-sans';
+            tooltip.innerHTML = `<div class='font-bold text-slate-100'>${xLabel || '&nbsp;'}</div><div class='font-bold text-xs text-slate-50'>${valueStr}</div>`;
+            document.body.appendChild(tooltip);
+            const canvasRect = this.canvas.getBoundingClientRect();
+            let tx = canvasRect.left + found.x + 16;
+            let ty = canvasRect.top + found.y - tooltip.offsetHeight / 2;
+            if (tx + tooltip.offsetWidth > window.innerWidth) tx = window.innerWidth - tooltip.offsetWidth - 10;
+            if (ty < 0) ty = 10;
+            tooltip.style.left = `${tx}px`;
+            tooltip.style.top = `${ty}px`;
         }
     }
 
@@ -279,7 +295,7 @@ class LineChart extends ChartCore {
                 } else {
                     ctx.lineTo(x, y);
                 }
-                allPoints.push({ x, y, value: val, label: ds.label, color: ds.pointColor });
+                allPoints.push({ x, y, value: val, label: ds.label, color: ds.pointColor, i });
                 prevX = x; prevY = y;
             });
             ctx.stroke();
@@ -293,7 +309,13 @@ class LineChart extends ChartCore {
                 ctx.fill();
             });
         });
-
+        // Draw X-axis labels centered under each point
+        ctx.fillStyle = '#111827';
+        ctx.textAlign = 'center';
+        labels.forEach((label, i) => {
+            const x = this.padding + i * spacingX;
+            ctx.fillText(label, x, this.height - this.padding + 20);
+        });
         this.allPoints = allPoints;
         this.drawLegend(datasets);
 
@@ -421,6 +443,8 @@ class BarChart extends ChartCore {
         });
         this.drawLegend(datasets);
     }
+
+    handleHover(e) { ChartCore.prototype.handleHover.call(this, e); }
 }
 
 class PieChart extends ChartCore {
@@ -493,6 +517,9 @@ class PieChart extends ChartCore {
     }
 
     handleHover(e) {
+        // Remove any existing tooltip
+        let tooltip = document.getElementById('mychart-tooltip');
+        if (tooltip) tooltip.remove();
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
@@ -517,26 +544,20 @@ class PieChart extends ChartCore {
         }
         this.draw(this.animationProgress);
         if (found) {
-            const ctx = this.ctx;
-            ctx.save();
-            ctx.font = '14px sans-serif';
-            ctx.fillStyle = 'rgba(0,0,0,0.8)';
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            const tooltip = `${found.label}: ${found.value}`;
-            const tw = ctx.measureText(tooltip).width + 16;
-            const th = 28;
-            let tx = mouseX + 10;
-            let ty = mouseY - th / 2;
-            if (tx + tw > this.width) tx = this.width - tw - 10;
+            const xLabel = found.label;
+            const valueStr = (typeof found.value === 'number') ? found.value.toLocaleString() : found.value;
+            tooltip = document.createElement('div');
+            tooltip.id = 'mychart-tooltip';
+            tooltip.className = 'pointer-events-none fixed z-50 px-2 py-1 rounded-lg shadow-lg bg-slate-800/90 text-slate-100 text-xs font-sans';
+            tooltip.innerHTML = `<div class='font-bold text-slate-100'>${xLabel || '&nbsp;'}</div><div class='font-bold text-xs text-slate-50'>${valueStr}</div>`;
+            document.body.appendChild(tooltip);
+            const canvasRect = this.canvas.getBoundingClientRect();
+            let tx = canvasRect.left + mouseX + 16;
+            let ty = canvasRect.top + mouseY - tooltip.offsetHeight / 2;
+            if (tx + tooltip.offsetWidth > window.innerWidth) tx = window.innerWidth - tooltip.offsetWidth - 10;
             if (ty < 0) ty = 10;
-            ctx.beginPath();
-            ctx.rect(tx, ty, tw, th);
-            ctx.fill();
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.fillText(tooltip, tx + 8, ty + 19);
-            ctx.restore();
+            tooltip.style.left = `${tx}px`;
+            tooltip.style.top = `${ty}px`;
         }
     }
 }
@@ -661,6 +682,8 @@ class MixedChart extends ChartCore {
         });
         this.drawLegend(datasets);
     }
+
+    handleHover(e) { ChartCore.prototype.handleHover.call(this, e); }
 }
 
 // Updated ChartFactory
