@@ -1,13 +1,5 @@
-/**
- * ChartCore - Base class for all chart types.
- * Handles canvas setup, resizing, animation, axes, legend, and tooltips.
- * Extend this class to implement custom chart types.
- */
+// Updated ChartCore to support multiple Y axes (left & right)
 class ChartCore {
-    /**
-     * @param {HTMLCanvasElement} canvas - The canvas element to render the chart on.
-     * @param {Object} config - Chart configuration (data, options).
-     */
     constructor(canvas, config) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
@@ -21,25 +13,20 @@ class ChartCore {
         this.graphWidth = this.width - 2 * this.padding;
         this.graphHeight = this.height - 2 * this.padding;
         this.allPoints = [];
-        this._lastParentWidth = null;
+        this._lastParentWidth = null; // Track last parent width
         this.init();
     }
 
-    /**
-     * Initialize chart: set up resize and mouse events, start animation.
-     */
     init() {
+        // this.resize(); // REMOVE this line to prevent repeated resizing
         requestAnimationFrame(this.animate.bind(this));
         window.addEventListener('resize', () => this.resize());
         this.canvas.addEventListener('mousemove', this.handleHover.bind(this));
     }
 
-    /**
-     * Resize canvas to fit parent container and redraw chart.
-     */
     resize() {
         const parentWidth = this.canvas.parentElement.clientWidth;
-        if (this._lastParentWidth === parentWidth) return;
+        if (this._lastParentWidth === parentWidth) return; // Only resize if parent width changed
         this._lastParentWidth = parentWidth;
         this.canvas.width = parentWidth;
         this.canvas.height = parentWidth * 0.6;
@@ -50,10 +37,6 @@ class ChartCore {
         requestAnimationFrame(this.animate.bind(this));
     }
 
-    /**
-     * Animate chart drawing (used for initial load and redraw).
-     * @param {number} timestamp
-     */
     animate(timestamp) {
         if (!this.animationStart) this.animationStart = timestamp;
         const elapsed = timestamp - this.animationStart;
@@ -64,16 +47,13 @@ class ChartCore {
         }
     }
 
-    /**
-     * Calculate max Y values for left and right axes (supports stacked charts).
-     * @returns {{leftMax: number, rightMax: number}}
-     */
+    // Calculates max for left and right axes
     getAxisMaxValues() {
         let datasets = this.config.data.datasets;
         const options = this.config.options || {};
         let leftMax = 0, rightMax = 0;
+        // Stacked bar: max is the sum of all bar values at each X
         if (options.stacked) {
-            // For stacked charts, sum values at each X
             const numPoints = datasets[0]?.data?.length || 0;
             for (let i = 0; i < numPoints; i++) {
                 let sumLeft = 0, sumRight = 0;
@@ -87,7 +67,6 @@ class ChartCore {
                 rightMax = Math.max(rightMax, sumRight);
             }
         } else {
-            // For non-stacked, just take max of each dataset
             datasets.forEach(ds => {
                 if (!ds || !Array.isArray(ds.data)) return;
                 const maxVal = Math.max(...ds.data);
@@ -98,19 +77,13 @@ class ChartCore {
         return { leftMax, rightMax };
     }
 
-    /**
-     * Draw chart axes and X/Y labels.
-     * @param {number} maxLeft - Max value for left Y axis
-     * @param {number} maxRight - Max value for right Y axis
-     * @param {string[]} labels - X axis labels
-     * @param {number} spacingX - Space between X ticks
-     */
     drawAxes(maxLeft, maxRight, labels, spacingX) {
         const ctx = this.ctx;
         ctx.strokeStyle = '#E5E7EB';
         ctx.fillStyle = '#4B5563';
         ctx.font = '12px sans-serif';
         ctx.textAlign = 'right';
+
         const yStep = 50;
         for (let y = 0; y <= maxLeft; y += yStep) {
             const yPos = this.height - this.padding - (y / maxLeft) * this.graphHeight;
@@ -120,6 +93,7 @@ class ChartCore {
             ctx.stroke();
             ctx.fillText(y, this.padding - 10, yPos + 4);
         }
+
         if (maxRight > 0) {
             ctx.textAlign = 'left';
             for (let y = 0; y <= maxRight; y += yStep) {
@@ -127,6 +101,7 @@ class ChartCore {
                 ctx.fillText(y, this.width - this.padding + 10, yPos + 4);
             }
         }
+
         // Draw base axis lines
         ctx.strokeStyle = '#374151';
         ctx.beginPath();
@@ -134,6 +109,7 @@ class ChartCore {
         ctx.lineTo(this.padding, this.height - this.padding);
         ctx.lineTo(this.width - this.padding, this.height - this.padding);
         ctx.stroke();
+
         // X-axis labels
         ctx.fillStyle = '#111827';
         ctx.textAlign = 'center';
@@ -143,10 +119,6 @@ class ChartCore {
         });
     }
 
-    /**
-     * Draw chart legend for all datasets.
-     * @param {Array<{label: string, borderColor?: string, backgroundColor?: string}>} datasets
-     */
     drawLegend(datasets) {
         const ctx = this.ctx;
         let legendX = this.padding;
@@ -161,10 +133,6 @@ class ChartCore {
         });
     }
 
-    /**
-     * Handle mouse hover for tooltips (for line/bar charts).
-     * @param {MouseEvent} e
-     */
     handleHover(e) {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -186,9 +154,6 @@ class ChartCore {
         }
     }
 
-    /**
-     * Export chart as PNG image.
-     */
     exportPNG() {
         const link = document.createElement('a');
         link.download = 'chart.png';
@@ -197,15 +162,10 @@ class ChartCore {
     }
 }
 
-/**
- * LineChart - Renders animated, interactive line charts with optional smooth curves.
- * Supports multi-series, per-point tooltips, and smoothness modifier.
- */
+// Additional work: LineChart and BarChart will be updated to use getAxisMaxValues() and respect yAxis config.
+// Stacked bar + SVG export will follow in next commits.
+
 class LineChart extends ChartCore {
-    /**
-     * Draw the line chart.
-     * @param {number} progress - Animation progress (0 to 1)
-     */
     draw(progress) {
         const { labels, datasets } = this.config.data;
         const spacingX = this.graphWidth / (labels.length - 1);
@@ -214,9 +174,11 @@ class LineChart extends ChartCore {
         const { leftMax, rightMax } = this.getAxisMaxValues();
         ctx.clearRect(0, 0, this.width, this.height);
         this.drawAxes(leftMax, rightMax, labels, spacingX);
-        // Smoothness: 1 (pointy) to 10 (curvy)
+
         const smoothness = (this.config.options && this.config.options.smoothness) ? this.config.options.smoothness : 1;
+        // Clamp smoothness between 1 and 10
         const s = Math.max(1, Math.min(10, smoothness));
+
         datasets.forEach(ds => {
             ctx.strokeStyle = ds.borderColor;
             ctx.lineWidth = 2;
@@ -229,10 +191,12 @@ class LineChart extends ChartCore {
                     ctx.moveTo(x, y);
                 } else if (s > 1) {
                     // Cubic Bezier for smooth lines
+                    // Calculate control points
                     const prevVal = ds.data[i - 1];
                     const prevX_ = this.padding + (i - 1) * spacingX;
                     const prevY_ = this.height - this.padding - (prevVal / leftMax) * this.graphHeight * progress;
-                    const t = (s - 1) / 18; // Tension: 0 (pointy) to 0.5 (curvy)
+                    // Tension: 0 (pointy) to 0.5 (very curvy)
+                    const t = (s - 1) / 18; // max 0.5 at s=10
                     const cp1x = prevX_ + spacingX * t;
                     const cp1y = prevY_;
                     const cp2x = x - spacingX * t;
@@ -245,7 +209,7 @@ class LineChart extends ChartCore {
                 prevX = x; prevY = y;
             });
             ctx.stroke();
-            // Draw points
+
             ds.data.forEach((val, i) => {
                 const x = this.padding + i * spacingX;
                 const y = this.height - this.padding - (val / leftMax) * this.graphHeight * progress;
@@ -255,78 +219,96 @@ class LineChart extends ChartCore {
                 ctx.fill();
             });
         });
+
         this.allPoints = allPoints;
         this.drawLegend(datasets);
+
     }
 }
 
-/**
- * BarChart - Renders animated, interactive bar charts (grouped or stacked).
- * Supports multi-series, left/right axes, and tooltips.
- */
 class BarChart extends ChartCore {
-    /**
-     * Draw the bar chart.
-     * @param {number} progress - Animation progress (0 to 1)
-     */
     draw(progress) {
         const { labels, datasets } = this.config.data;
         const options = this.config.options || {};
         const stacked = options.stacked || false;
         const ctx = this.ctx;
-        // Calculate spacing for bar groups
+
+        // Dynamically calculate spacingX so all bar groups fit
         const spacingX = this.graphWidth / labels.length;
-        const groupSpacing = 0;
+        const groupSpacing = 0; // No extra group spacing needed with dynamic spacing
         const barSpacing = 10;
+
         const { leftMax, rightMax } = this.getAxisMaxValues();
+
         ctx.clearRect(0, 0, this.width, this.height);
         this.drawAxes(leftMax, rightMax, labels, spacingX + groupSpacing);
-        // Prepare cumulative heights for stacked bars
+
+        // Prepare cumulative heights for stacked bars on each axis
         let cumHeightsLeft = new Array(labels.length).fill(0);
         let cumHeightsRight = new Array(labels.length).fill(0);
+
+        // Filter bar datasets for grouped spacing calculation
         const barDatasets = datasets.filter(ds => ds.type === 'bar');
         const numBarDatasets = barDatasets.length;
+
         labels.forEach((label, i) => {
             const baseX = this.padding + i * spacingX;
+
             datasets.forEach(ds => {
-                if (!ds || !Array.isArray(ds.data)) return;
+                if (!ds || !Array.isArray(ds.data)) return; // Prevent undefined errors
                 const val = ds.data[i];
                 if (val == null) return;
+
                 const axis = ds.yAxis === 'right' ? 'right' : 'left';
                 const maxValue = axis === 'right' ? rightMax : leftMax;
+
                 if (ds.type === 'bar') {
                     if (stacked) {
-                        // Stacked bars: draw on top of previous
                         const cumHeight = axis === 'right' ? cumHeightsRight[i] : cumHeightsLeft[i];
                         const height = (val / maxValue) * this.graphHeight * progress;
                         const x = baseX + barSpacing;
                         const y = this.height - this.padding - height - cumHeight;
                         const w = spacingX - 2 * barSpacing;
-                        ctx.fillStyle = ds.backgroundColor;
+
+                        ctx.fillStyle = Array.isArray(ds.backgroundColor)
+                            ? ds.backgroundColor[i % ds.backgroundColor.length]
+                            : ds.backgroundColor || ds.borderColor;
+
                         ctx.fillRect(x, y, w, height);
+
+                        if (progress === 1) {
+                            ctx.fillStyle = '#1F2937';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(val, x + w / 2, y - 6);
+                        }
+
                         if (axis === 'right') cumHeightsRight[i] += height;
                         else cumHeightsLeft[i] += height;
                     } else {
                         // Grouped bars
                         const barIndex = barDatasets.indexOf(ds);
-                        const barWidth = (spacingX - 2 * barSpacing) / numBarDatasets;
-                        const x = baseX + barSpacing + barIndex * barWidth;
+                        const w = (spacingX / numBarDatasets) - 2 * barSpacing;
+                        const x = baseX + barIndex * (spacingX / numBarDatasets) + barSpacing;
                         const height = (val / maxValue) * this.graphHeight * progress;
                         const y = this.height - this.padding - height;
-                        ctx.fillStyle = ds.backgroundColor;
-                        ctx.fillRect(x, y, barWidth, height);
-                    }
-                    // Value label
-                    if (progress === 1) {
-                        ctx.fillStyle = '#1F2937';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(val, x + (stacked ? w / 2 : barWidth / 2), y - 6);
+
+                        ctx.fillStyle = Array.isArray(ds.backgroundColor)
+                            ? ds.backgroundColor[i % ds.backgroundColor.length]
+                            : ds.backgroundColor || ds.borderColor;
+
+                        ctx.fillRect(x, y, w, height);
+
+                        if (progress === 1) {
+                            ctx.fillStyle = '#1F2937';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(val, x + w / 2, y - 6);
+                        }
                     }
                 } else if (ds.type === 'line') {
-                    // Draw line on top of bars (for mixed charts)
                     ctx.strokeStyle = ds.borderColor;
                     ctx.lineWidth = 2;
                     ctx.beginPath();
+
                     for (let k = 0; k <= i; k++) {
                         const x = this.padding + k * spacingX;
                         const yVal = ds.data[k];
@@ -336,6 +318,7 @@ class BarChart extends ChartCore {
                         else ctx.lineTo(x, y);
                     }
                     ctx.stroke();
+
                     // Draw points
                     const xPoint = this.padding + i * spacingX;
                     const yPoint = this.height - this.padding - (val / maxValue) * this.graphHeight * progress;
@@ -346,30 +329,28 @@ class BarChart extends ChartCore {
                 }
             });
         });
+
         this.drawLegend(datasets);
     }
 }
 
-/**
- * PieChart - Renders animated, interactive pie charts with tooltips and legend.
- * Supports per-slice color, auto palette, and live editing.
- * TODO: Donut and gap modifiers (see code comments).
- */
 class PieChart extends ChartCore {
     constructor(canvas, config) {
         super(canvas, config);
         this._pieSegments = [];
     }
-    /**
-     * Draw the pie chart.
-     * @param {number} progress - Animation progress (0 to 1)
-     */
+
     draw(progress) {
         const { labels, datasets } = this.config.data;
-        // TODO: Donut and gap modifiers for pie charts (see previous implementation)
+        const options = this.config.options || {};
+        // Donut: percent of radius (0-80)
+        const donutPercent = Math.max(0, Math.min(80, options.donut || 0));
+        const gapDeg = Math.max(0, Math.min(20, options.gap || 0));
+        const gapRad = gapDeg * Math.PI / 180;
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.width, this.height);
         const data = datasets[0].data;
+        // Ensure colors array for each slice
         let colors = datasets[0].backgroundColor;
         if (!Array.isArray(colors) || colors.length < data.length) {
             // Generate a default palette
@@ -384,12 +365,26 @@ class PieChart extends ChartCore {
         const cx = this.width / 2;
         const cy = this.height / 2;
         const radius = Math.min(this.width, this.height) / 3;
+        // Donut: inner radius as percent of outer radius
+        const innerRadius = donutPercent > 0 ? radius * (donutPercent / 100) : 0;
         this._pieSegments = [];
+
         data.forEach((value, i) => {
             let angle = (value / total) * 2 * Math.PI * progress;
+            // Limit gap to not exceed slice angle
+            const actualGap = Math.min(gapRad, angle * 0.8);
+            const sliceStart = startAngle + actualGap / 2;
+            const sliceEnd = startAngle + angle - actualGap / 2;
             ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, radius, startAngle, startAngle + angle, false);
+            if (innerRadius > 0) {
+                // Draw donut slice
+                ctx.arc(cx, cy, radius, sliceStart, sliceEnd, false);
+                ctx.arc(cx, cy, innerRadius, sliceEnd, sliceStart, true);
+            } else {
+                // Draw pie slice
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, sliceStart, sliceEnd, false);
+            }
             ctx.closePath();
             ctx.fillStyle = colors[i % colors.length];
             ctx.fill();
@@ -398,18 +393,16 @@ class PieChart extends ChartCore {
                 label: labels[i],
                 value,
                 color: colors[i % colors.length],
-                startAngle: startAngle,
-                endAngle: startAngle + angle
+                startAngle: sliceStart,
+                endAngle: sliceEnd
             });
             startAngle += angle;
         });
+
         // Draw legend: one entry per slice
         this.drawLegend(labels.map((label, i) => ({ label, borderColor: colors[i % colors.length] })));
     }
-    /**
-     * Handle mouse hover for pie tooltips.
-     * @param {MouseEvent} e
-     */
+
     handleHover(e) {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -437,53 +430,155 @@ class PieChart extends ChartCore {
         if (found) {
             const ctx = this.ctx;
             ctx.save();
-            ctx.fillStyle = 'black';
-            ctx.fillRect(cx + radius + 10, cy - 20, 100, 24);
-            ctx.fillStyle = 'white';
-            ctx.font = '12px sans-serif';
-            ctx.fillText(`${found.label}: ${found.value}`, cx + radius + 15, cy - 5);
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            const tooltip = `${found.label}: ${found.value}`;
+            const tw = ctx.measureText(tooltip).width + 16;
+            const th = 28;
+            let tx = mouseX + 10;
+            let ty = mouseY - th / 2;
+            if (tx + tw > this.width) tx = this.width - tw - 10;
+            if (ty < 0) ty = 10;
+            ctx.beginPath();
+            ctx.rect(tx, ty, tw, th);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.fillText(tooltip, tx + 8, ty + 19);
             ctx.restore();
         }
     }
 }
 
-/**
- * ChartFactory - Instantiates the correct chart type based on config.
- * Supports: bar, line, pie, mixed.
- */
+// Extend ChartCore with multi-axis support as done earlier (not repeated here)
+
+// MixedChart implementation
+class MixedChart extends ChartCore {
+    draw(progress) {
+        const { labels, datasets } = this.config.data;
+        const options = this.config.options || {};
+        const stacked = options.stacked || false;
+        const ctx = this.ctx;
+
+        const spacingX = 80;
+        const groupSpacing = 40;
+        const barSpacing = 10;
+
+        const { leftMax, rightMax } = this.getAxisMaxValues();
+
+        ctx.clearRect(0, 0, this.width, this.height);
+        this.drawAxes(leftMax, rightMax, labels, spacingX + groupSpacing);
+
+        // Prepare cumulative heights for stacked bars on each axis
+        let cumHeightsLeft = new Array(labels.length).fill(0);
+        let cumHeightsRight = new Array(labels.length).fill(0);
+
+        // Filter bar datasets for grouped spacing calculation
+        const barDatasets = datasets.filter(ds => ds.type === 'bar');
+        const numBarDatasets = barDatasets.length;
+
+        labels.forEach((label, i) => {
+            const baseX = this.padding + i * (spacingX + groupSpacing);
+
+            datasets.forEach(ds => {
+                if (!ds || !Array.isArray(ds.data) || typeof ds.data[i] === 'undefined') return; // Robust guard
+                const val = ds.data[i];
+                if (val == null) return;
+
+                const axis = ds.yAxis === 'right' ? 'right' : 'left';
+                const maxValue = axis === 'right' ? rightMax : leftMax;
+
+                if (ds.type === 'bar') {
+                    if (stacked) {
+                        const cumHeight = axis === 'right' ? cumHeightsRight[i] : cumHeightsLeft[i];
+                        const height = (val / maxValue) * this.graphHeight * progress;
+                        const x = baseX + barSpacing;
+                        const y = this.height - this.padding - height - cumHeight;
+                        const w = spacingX - 2 * barSpacing;
+
+                        ctx.fillStyle = Array.isArray(ds.backgroundColor)
+                            ? ds.backgroundColor[i % ds.backgroundColor.length]
+                            : ds.backgroundColor || ds.borderColor;
+
+                        ctx.fillRect(x, y, w, height);
+
+                        if (progress === 1) {
+                            ctx.fillStyle = '#1F2937';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(val, x + w / 2, y - 6);
+                        }
+
+                        if (axis === 'right') cumHeightsRight[i] += height;
+                        else cumHeightsLeft[i] += height;
+                    } else {
+                        // Grouped bars
+                        const barIndex = barDatasets.indexOf(ds);
+                        const w = (spacingX / numBarDatasets) - 2 * barSpacing;
+                        const x = baseX + barIndex * (spacingX / numBarDatasets) + barSpacing;
+                        const height = (val / maxValue) * this.graphHeight * progress;
+                        const y = this.height - this.padding - height;
+
+                        ctx.fillStyle = Array.isArray(ds.backgroundColor)
+                            ? ds.backgroundColor[i % ds.backgroundColor.length]
+                            : ds.backgroundColor || ds.borderColor;
+
+                        ctx.fillRect(x, y, w, height);
+
+                        if (progress === 1) {
+                            ctx.fillStyle = '#1F2937';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(val, x + w / 2, y - 6);
+                        }
+                    }
+                } else if (ds.type === 'line') {
+                    ctx.strokeStyle = ds.borderColor;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    for (let k = 0; k < ds.data.length; k++) {
+                        // Align line X to center of bar group
+                        const x = this.padding + k * (spacingX + groupSpacing) + (spacingX + groupSpacing) / 2;
+                        const yVal = ds.data[k];
+                        if (yVal == null) continue;
+                        const y = this.height - this.padding - (yVal / maxValue) * this.graphHeight * progress;
+                        if (k === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                    // Draw points
+                    for (let k = 0; k < ds.data.length; k++) {
+                        const x = this.padding + k * (spacingX + groupSpacing) + (spacingX + groupSpacing) / 2;
+                        const yVal = ds.data[k];
+                        if (yVal == null) continue;
+                        const y = this.height - this.padding - (yVal / maxValue) * this.graphHeight * progress;
+                        ctx.fillStyle = ds.pointColor;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            });
+        });
+
+        this.drawLegend(datasets);
+    }
+}
+
+// Updated ChartFactory
 class ChartFactory {
-    /**
-     * Create a chart instance.
-     * @param {HTMLCanvasElement} canvas
-     * @param {Object} config
-     * @returns {ChartCore}
-     */
     static create(canvas, config) {
-        let type = config.type;
-        let data = config.data;
-        // Map multi-line to line for multi-series line charts
-        if (type === 'multi-line') type = 'line';
-        // Multi-series for line/bar: data is array of datasets
-        if ((type === 'line' || type === 'bar') && Array.isArray(data) && typeof data[0] === 'object' && Array.isArray(data[0].data)) {
-            config.data = { labels: config.labels, datasets: data };
-        } else if (type === 'pie') {
-            // Pie expects a single dataset with .data and .backgroundColor
-            config.data = { labels: config.labels, datasets: [{ data: data, backgroundColor: config.backgroundColor }] };
-        } else {
-            config.data = { labels: config.labels, datasets: [{ data: data }] };
-        }
-        switch (type) {
-            case 'bar':
-                return new BarChart(canvas, config);
+        switch (config.type) {
             case 'line':
                 return new LineChart(canvas, config);
+            case 'bar':
+                return new BarChart(canvas, config);
             case 'pie':
                 return new PieChart(canvas, config);
             case 'mixed':
-                // Mixed: bar and line datasets
-                return new BarChart(canvas, config);
+                return new MixedChart(canvas, config);
             default:
-                throw new Error('Unknown chart type: ' + type);
+                throw new Error('Unknown chart type: ' + config.type);
         }
     }
 }
