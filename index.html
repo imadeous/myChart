@@ -26,8 +26,6 @@
             <option value="pie">Pie</option>
             <option value="mixed">Mixed</option>
         </select>
-        <button onclick="toggleDarkMode()" id="darkModeBtn"
-            class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">🌙</button>
         <button onclick="toggleAnimation()" id="animBtn"
             class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Animation: On</button>
     </div>
@@ -308,15 +306,6 @@
         // Initial render
         window.onload = renderChart;
 
-        // --- Dark Mode Toggle ---
-        function toggleDarkMode() {
-            document.body.classList.toggle('bg-gray-900');
-            document.body.classList.toggle('text-white');
-            document.body.classList.toggle('bg-gray-50');
-            document.body.classList.toggle('text-gray-900');
-            const btn = document.getElementById('darkModeBtn');
-            btn.textContent = document.body.classList.contains('bg-gray-900') ? '☀️' : '🌙';
-        }
         // --- Animation Toggle ---
         function toggleAnimation() {
             window.__chartAnimation = !window.__chartAnimation;

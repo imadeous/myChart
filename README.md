@@ -11,7 +11,6 @@ A lightweight, object-oriented JavaScript charting library inspired by Chart.js.
 - 🖱 Interactive tooltips (including pie charts)
 - 🖌 Per-series color pickers
 - 🌀 Smooth animations with toggle
-- 🌙 Dark mode toggle
 - 🖼 Export as PNG image
 - 📐 Auto-resizing and fully responsive (mobile-first)
 - 🧱 Extensible OOP architecture
@@ -24,15 +23,21 @@ A lightweight, object-oriented JavaScript charting library inspired by Chart.js.
 
 ## 📦 Installation
 
-### Option A: Via CDN (recommended)
-Upload `mychart.min.js` to GitHub and use with jsDelivr:
+### Option A: Use from GitHub (recommended)
+Add the following script tag to your HTML to use the latest version from the official repo:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/yourusername/mychart/mychart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/imadeous/myChart@latest/myChart.js"></script>
 ```
 
-### Option B: Local
-Copy `myChart.js` and include in your HTML:
+Or, for a specific release/tag:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/imadeous/myChart@v1.0.0/myChart.js"></script>
+```
+
+### Option B: Clone or Download
+Clone the repository or download the files, then include in your HTML:
 
 ```html
 <script src="myChart.js"></script>
@@ -45,7 +50,7 @@ Copy `myChart.js` and include in your HTML:
 Open `index.html` in your browser. Use the UI to:
 - Select chart type (Bar, Line, Pie, Mixed)
 - Edit data, labels, and colors live
-- Toggle dark mode and animation
+- Toggle animation
 - Export the chart as PNG
 - See tooltips and legends for all chart types
 
@@ -54,6 +59,7 @@ Open `index.html` in your browser. Use the UI to:
 ## 📝 Development Notes
 - Donut and gap modifiers for pie charts are a TODO (see code comments for future implementation).
 - All chart and UI updates are live and immediate.
+- Dark mode has been removed for simplicity.
 
 ---
 
