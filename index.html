@@ -26,15 +26,12 @@
             <option value="pie">Pie</option>
             <option value="mixed">Mixed</option>
         </select>
-        <button onclick="toggleDarkMode()" id="darkModeBtn"
-            class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition">🌙</button>
-        <button onclick="toggleAnimation()" id="animBtn"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Animation: On</button>
+        <div id="datasetControls" class="w-full flex flex-col gap-2 items-center"></div>
     </div>
-    <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+    <div class="bg-white rounded-lg shadow p-4 flex flex-col items-center mb-4">
         <canvas id="chartCanvas" width="600" height="400" class="mb-2"></canvas>
     </div>
-    <div id="datasetControls" class="w-full flex flex-col gap-2 mb-4"></div>
+
     <script src="myChart.js"></script>
     <script>
         // Example datasets
