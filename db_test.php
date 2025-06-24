@@ -1,6 +1,22 @@
 <?php
 // db_test.php - Simple DB connection and test for ChartDataHelper
 
+/*
+Example database and table structure used:
+
+Database: database_db
+Table: transactions
+Columns:
+  id INT PRIMARY KEY AUTO_INCREMENT
+  user_id INT
+  amount DECIMAL(10,2)
+  type VARCHAR(50)
+  description TEXT
+  created_at DATETIME
+
+Sample query groups by month (from created_at), and by type, summing amount.
+*/
+
 $host = 'localhost';
 $db   = 'database_db';
 $user = 'root';
