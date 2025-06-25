@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyChart.js Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body {
+            background: #f8fafc;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px #0001;
+            padding: 2rem;
+        }
+
+        .sidebar-link:hover {
+            background: #e0e7ef;
+        }
+
+        pre,
+        code {
+            background: #f1f5f9;
+            border-radius: 0.3rem;
+            padding: 0.2em 0.5em;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex bg-slate-100">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg flex flex-col min-h-screen">
+        <div class="p-6 border-b border-slate-200">
+            <span class="text-2xl font-bold text-blue-700">MyChart.js</span>
+            <div class="text-xs text-slate-400 mt-1">Documentation</div>
+        </div>
+        <nav class="flex-1 px-4 py-6">
+            <ul class="space-y-2">
+                <li><a href="#intro"
+                        class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">Introduction</a></li>
+                <li><a href="#getting-started"
+                        class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">Getting Started</a></li>
+                <li><a href="#usage" class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">Usage</a>
+                </li>
+                <li><a href="#api" class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">API
+                        Reference</a></li>
+                <li><a href="#examples"
+                        class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">Examples</a></li>
+                <li><a href="#faq" class="block px-3 py-2 rounded sidebar-link font-medium text-slate-700">FAQ</a></li>
+            </ul>
+        </nav>
+        <div class="p-4 border-t border-slate-200 text-xs text-slate-400">&copy; 2025 MyChart.js</div>
+    </aside>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-h-screen">
+        <header class="w-full bg-white shadow flex items-center px-8 py-4 sticky top-0 z-10">
+            <h1 class="text-2xl font-bold text-slate-800 flex-1">Documentation</h1>
+            <span class="text-slate-500 text-sm">Comprehensive Guide</span>
+        </header>
+        <div class="flex-1 p-8 bg-slate-100 overflow-y-auto">
+            <section id="intro" class="mb-10">
+                <h2 class="text-xl font-bold mb-2">Introduction</h2>
+                <p class="mb-2">MyChart.js is a modern, lightweight JavaScript charting library for building beautiful,
+                    interactive dashboards with zero dependencies. It supports bar, line, pie, mixed, and stacked
+                    charts, and is fully customizable via JavaScript.</p>
+                <ul class="list-disc ml-6 text-slate-700">
+                    <li>Zero dependencies, pure JS/Canvas</li>
+                    <li>Responsive and mobile-friendly</li>
+                    <li>Customizable tooltips, legends, and colors</li>
+                    <li>Supports multi-series, mixed, and stacked charts</li>
+                </ul>
+            </section>
+            <section id="getting-started" class="mb-10 hidden">
+                <h2 class="text-xl font-bold mb-2">Getting Started</h2>
+                <ol class="list-decimal ml-6 text-slate-700 mb-2">
+                    <li>Download <code>myChart.js</code> and include it in your HTML:</li>
+                </ol>
+                <pre><code>&lt;script src="myChart.js"&gt;&lt;/script&gt;</code></pre>
+                <ol start="2" class="list-decimal ml-6 text-slate-700 mb-2">
+                    <li>Add a <code>&lt;canvas&gt;</code> element to your page:</li>
+                </ol>
+                <pre><code>&lt;canvas id="myChart" width="600" height="400"&gt;&lt;/canvas&gt;</code></pre>
+                <ol start="3" class="list-decimal ml-6 text-slate-700 mb-2">
+                    <li>Call <code>drawChart</code> with your data:</li>
+                </ol>
+                <pre><code>drawChart('bar', ['A', 'B', 'C'], [10, 20, 30], 'myChart');</code></pre>
+            </section>
+            <section id="usage" class="mb-10 hidden">
+                <h2 class="text-xl font-bold mb-2">Usage</h2>
+                <p class="mb-2">You can create different chart types by changing the <code>type</code> argument:</p>
+                <ul class="list-disc ml-6 text-slate-700 mb-2">
+                    <li><b>Bar:</b> <code>'bar'</code></li>
+                    <li><b>Line:</b> <code>'line'</code></li>
+                    <li><b>Pie:</b> <code>'pie'</code></li>
+                    <li><b>Mixed:</b> <code>'mixed'</code> (bar + line)</li>
+                    <li><b>Stacked Bar:</b> <code>'stacked-bar'</code></li>
+                </ul>
+                <p class="mb-2">Multi-series charts use an array of dataset objects:</p>
+                <pre><code>drawChart('bar', ['A', 'B', 'C'], [
+  { label: 'Series 1', data: [10, 20, 30] },
+  { label: 'Series 2', data: [15, 10, 25] }
+], 'myChart');</code></pre>
+            </section>
+            <section id="api" class="mb-10 hidden">
+                <h2 class="text-xl font-bold mb-2">API Reference</h2>
+                <h3 class="text-lg font-semibold mt-4 mb-1">drawChart(type, labels, data, canvasId, options?)</h3>
+                <ul class="list-disc ml-6 text-slate-700 mb-2">
+                    <li><b>type</b>: <code>'bar' | 'line' | 'pie' | 'mixed' | 'stacked-bar'</code></li>
+                    <li><b>labels</b>: <code>string[]</code> (X-axis or pie labels)</li>
+                    <li><b>data</b>: <code>number[]</code> or <code>Dataset[]</code></li>
+                    <li><b>canvasId</b>: <code>string</code> (id of your &lt;canvas&gt;)</li>
+                    <li><b>options</b>: <code>object</code> (optional, e.g.
+                        <code>{ yAxisLabel: 'USD ($)', stacked: true }</code>)
+                    </li>
+                </ul>
+                <h3 class="text-lg font-semibold mt-4 mb-1">Dataset Object</h3>
+                <pre><code>{
+  label: 'Series Name',
+  data: [10, 20, 30],
+  borderColor: '#3b82f6',
+  backgroundColor: '#3b82f6',
+  pointColor: '#3b82f6',
+  type: 'bar' | 'line'
+}</code></pre>
+            </section>
+            <section id="examples" class="mb-10 hidden">
+                <h2 class="text-xl font-bold mb-2">Examples</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="chart-card">
+                        <h3 class="font-semibold mb-2">Bar Chart</h3>
+                        <pre><code>drawChart('bar', ['A', 'B', 'C'], [10, 20, 30], 'myChart');</code></pre>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="font-semibold mb-2">Line Chart</h3>
+                        <pre><code>drawChart('line', ['Jan', 'Feb', 'Mar'], [5, 15, 10], 'myChart');</code></pre>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="font-semibold mb-2">Pie Chart</h3>
+                        <pre><code>drawChart('pie', ['Income', 'Expense'], [73528.67, 85039.19], 'myChart');</code></pre>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="font-semibold mb-2">Multi-Series Bar</h3>
+                        <pre><code>drawChart('bar', ['A', 'B', 'C'], [
+  { label: 'S1', data: [10, 20, 30] },
+  { label: 'S2', data: [15, 10, 25] }
+], 'myChart');</code></pre>
+                    </div>
+                    <div class="chart-card">
+                        <h3 class="font-semibold mb-2">Mixed Chart</h3>
+                        <pre><code>drawChart('mixed', ['Q1', 'Q2', 'Q3', 'Q4'], [
+  { label: 'Bar', data: [10, 20, 30, 40], type: 'bar' },
+  { label: 'Line', data: [5, 15, 10, 25], type: 'line' }
+], 'myChart');</code></pre>
+                    </div>
+                </div>
+            </section>
+            <section id="faq" class="mb-10 hidden">
+                <h2 class="text-xl font-bold mb-2">FAQ</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold mb-1">Can I use MyChart.js with frameworks like React or Vue?</h3>
+                    <p>Yes! MyChart.js is framework-agnostic. Just use a <code>&lt;canvas&gt;</code> and call
+                        <code>drawChart</code> in your component lifecycle.
+                    </p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold mb-1">Does it support tooltips and legends?</h3>
+                    <p>Yes, tooltips and legends are built-in and customizable via CSS.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold mb-1">How do I export a chart as PNG?</h3>
+                    <p>Call <code>chartInstance.exportPNG()</code> or use the built-in download button if available.</p>
+                </div>
+            </section>
+        </div>
+        <footer class="w-full text-center text-xs text-slate-400 py-4">Powered by <b>MyChart.js</b> &middot; Docs 2025
+        </footer>
+    </main>
+    <script>
+        // Tab logic: show only the active section
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('.sidebar-link');
+            const sections = document.querySelectorAll('main > div > section');
+            function activateSection(hash) {
+                sections.forEach(sec => {
+                    if ('#' + sec.id === hash) {
+                        sec.classList.remove('hidden');
+                    } else {
+                        sec.classList.add('hidden');
+                    }
+                });
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === hash) {
+                        link.classList.add('bg-blue-100', 'text-blue-700', 'font-bold');
+                    } else {
+                        link.classList.remove('bg-blue-100', 'text-blue-700', 'font-bold');
+                    }
+                });
+            }
+            // Initial: show first section
+            activateSection(window.location.hash || '#intro');
+            // On nav click
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const hash = this.getAttribute('href');
+                    history.replaceState(null, '', hash);
+                    activateSection(hash);
+                });
+            });
+            // On hash change (back/forward)
+            window.addEventListener('hashchange', function () {
+                activateSection(window.location.hash);
+            });
+        });
+    </script>
+</body>
+
+</html>

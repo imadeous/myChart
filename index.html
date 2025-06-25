@@ -122,7 +122,11 @@
             datasetControls.innerHTML = '';
             let ds;
             if (chartType === 'pie') {
-                ds = { labels: ['A', 'B', 'C'], data: [10, 20, 30] };
+                // Use realistic static data for pie chart demo
+                ds = {
+                    labels: ['Income', 'Expense'],
+                    data: [73528.67, 85039.19] // sum of positive values from your previous pie chart data
+                };
             } else if (chartType === 'mixed') {
                 ds = {
                     labels: ['Q1', 'Q2', 'Q3', 'Q4'],
