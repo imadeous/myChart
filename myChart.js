@@ -587,6 +587,9 @@ class MixedChart extends ChartCore {
         const barDatasets = datasets.filter(ds => ds.type === 'bar');
         const numBarDatasets = barDatasets.length;
 
+        // --- Collect all points for tooltips (bars and lines) ---
+        const allPoints = [];
+
         labels.forEach((label, i) => {
             const baseX = this.padding + i * (spacingX + groupSpacing);
 
@@ -617,7 +620,8 @@ class MixedChart extends ChartCore {
                             // Format bar label with commas
                             ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
-
+                        // Tooltip point for bar
+                        allPoints.push({ x: x + w / 2, y, value: val, label: ds.label, color: ds.backgroundColor, i, xLabel: label });
                         if (axis === 'right') cumHeightsRight[i] += height;
                         else cumHeightsLeft[i] += height;
                     } else {
@@ -639,6 +643,8 @@ class MixedChart extends ChartCore {
                             // Format bar label with commas
                             ctx.fillText(typeof val === 'number' ? val.toLocaleString() : val, x + w / 2, y - 6);
                         }
+                        // Tooltip point for bar
+                        allPoints.push({ x: x + w / 2, y, value: val, label: ds.label, color: ds.backgroundColor, i, xLabel: label });
                     }
                 } else if (ds.type === 'line') {
                     ctx.strokeStyle = ds.borderColor;
@@ -652,6 +658,8 @@ class MixedChart extends ChartCore {
                         const y = this.height - this.padding - (yVal / maxValue) * this.graphHeight * progress;
                         if (k === 0) ctx.moveTo(x, y);
                         else ctx.lineTo(x, y);
+                        // Tooltip point for line
+                        allPoints.push({ x, y, value: yVal, label: ds.label, color: ds.pointColor, i: k, xLabel: labels[k] });
                     }
                     ctx.stroke();
                     // Draw points
@@ -677,6 +685,7 @@ class MixedChart extends ChartCore {
             const x = this.padding + i * (spacingX + groupSpacing) + (spacingX + groupSpacing) / 2;
             ctx.fillText(label, x, this.height - this.padding + 20);
         });
+        this.allPoints = allPoints;
         this.drawLegend(datasets);
     }
 
